@@ -148,15 +148,12 @@ void editorRefreshScreen() {
   struct abuf ab = ABUF_INIT;
 
   // See https://vt100.net/docs/vt100-ug/chapter3.html for VT100 escape sequences
-  // Clear screen
-  abAppend(&ab, "\x1b[2J", 4);
-  // Position cursor at top left corner
-  abAppend(&ab, "\x1b[H", 3);
+  abAppend(&ab, "\x1b[2J", 4); // Clear screen
+  abAppend(&ab, "\x1b[H", 3); // Position cursor at top left corner
 
   editorDrawRows(&ab);
 
-  // Position cursor back to top left corner
-  abAppend(&ab, "\x1b[H", 3);
+  abAppend(&ab, "\x1b[H", 3); // Position cursor back to top left corner
 
   write(STDOUT_FILENO, ab.b, ab.len);
   abFree(&ab);
