@@ -126,33 +126,40 @@ void abAppend(struct abuf *ab, const char *s, int len) {
   ab->b = new;
   ab->len += len;
 }
+
 void abFree(struct abuf *ab) {
   free(ab->b);
 }
 
 /*** output ***/
 
-void editorDrawRows() {
+void editorDrawRows(struct abuf *ab) {
   int y;
   for (y = 0; y < E.screenrows; y++) {
-    write(STDOUT_FILENO, "~", 1);
+    abAppend(ab, "~", 1);
 
     if (y < E.screenrows - 1) {
-      write(STDOUT_FILENO, "\r\n", 2);
+      abAppend(ab, "\r\n", 2);
     }
   }
 }
 
 void editorRefreshScreen() {
+  struct abuf ab = ABUF_INIT;
+
   // See https://vt100.net/docs/vt100-ug/chapter3.html for VT100 escape sequences
   // Clear screen
-  write(STDOUT_FILENO, "\x1b[2J", 4);
+  abAppend(&ab, "\x1b[2J", 4);
   // Position cursor at top left corner
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  abAppend(&ab, "\x1b[H", 3);
 
-  editorDrawRows();
+  editorDrawRows(&ab);
 
-  write(STDOUT_FILENO, "\x1b[H", 3);
+  // Position cursor back to top left corner
+  abAppend(&ab, "\x1b[H", 3);
+
+  write(STDOUT_FILENO, ab.b, ab.len);
+  abFree(&ab);
 }
 
 /*** input ***/
