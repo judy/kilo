@@ -18,6 +18,11 @@ struct termios orig_termios;
 /*** terminal ***/
 
 void die(const char *s) {
+  // Clear screen
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  // Position cursor at top left corner
+  write(STDOUT_FILENO, "\x1b[H", 3);
+
   perror(s); // perror() looks at the global errno variable and prints a descriptive error message for it
   exit(1);
 }
@@ -62,6 +67,27 @@ char editorReadKey() {
   return c;
 }
 
+/*** output ***/
+
+void editorDrawRows() {
+  int y;
+  for (y = 0; y < 24; y++) {
+    write(STDOUT_FILENO, "~\r\n", 3);
+  }
+}
+
+void editorRefreshScreen() {
+  // See https://vt100.net/docs/vt100-ug/chapter3.html for VT100 escape sequences
+  // Clear screen
+  write(STDOUT_FILENO, "\x1b[2J", 4);
+  // Position cursor at top left corner
+  write(STDOUT_FILENO, "\x1b[H", 3);
+
+  editorDrawRows();
+
+  write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
 /*** input ***/
 
 void editorProcessKeypress() {
@@ -69,6 +95,10 @@ void editorProcessKeypress() {
 
   switch (c) {
     case CTRL_KEY('q'):
+      // Clear screen
+      write(STDOUT_FILENO, "\x1b[2J", 4);
+      // Position cursor at top left corner
+      write(STDOUT_FILENO, "\x1b[H", 3);
       exit(0);
       break;
   }
@@ -80,6 +110,7 @@ int main() {
   enableRawMode();
 
   while (1) {
+    editorRefreshScreen();
     editorProcessKeypress();
   }
 
